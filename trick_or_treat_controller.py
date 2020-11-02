@@ -5,7 +5,6 @@
 import struct
 import pyaudio
 import pvporcupine
-#from matrix.pushtotalk import main
 from matrix_lite import led
 from time import sleep
 from math import pi, sin
@@ -14,13 +13,6 @@ from matrix_lite import gpio
 #for remote control
 
 import paramiko
-
-ledAdjust = 1.01 # MATRIX Voice
-everloop = ['orange'] * led.length
-frequency = 0.375
-counter = 0.0
-tick = len(everloop) - 1
-
 
 porcupine = None
 pa = None
@@ -31,42 +23,7 @@ audio_stream = None
 ssh = paramiko.SSHClient()
 ssh.load_system_host_keys()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-ssh.connect("motorpi.local", username="pi", password="arm123")
-
-#set up rainbow
-everloop = ['black'] * led.length
-
-ledAdjust = 0.0
-if len(everloop) == 35:
-    ledAdjust = 0.51 # MATRIX Creator
-else:
-    ledAdjust = 1.01 # MATRIX Voice
-
-frequency = 0.375
-counter = 0.0
-tick = len(everloop) - 1
-
-def tick_rainbow():
-        # Create rainbow
-    for i in range(len(everloop)):
-        r = round(max(0, (sin(frequency*counter+(pi/180*240))*155+100)/10))
-        g = round(max(0, (sin(frequency*counter+(pi/180*120))*155+100)/10))
-        b = round(max(0, (sin(frequency*counter)*155+100)/10))
-
-        counter += ledAdjust
-
-        everloop[i] = {'r':r, 'g':g, 'b':b}
-
-    # Slowly show rainbow
-    if tick != 0:
-        for i in reversed(range(tick)):
-            everloop[i] = {}
-        tick -= 1
-
-    led.set(everloop)
-
-    sleep(.035)
-
+ssh.connect("motorpi.local", username="pi", password="pi")
 
 def picovoice():
     try:
@@ -84,7 +41,6 @@ def picovoice():
         while True:
             print("Listening")
             led.set('orange')
-            #tick_rainbow()
             pcm = audio_stream.read(porcupine.frame_length)
             pcm = struct.unpack_from("h" * porcupine.frame_length, pcm)
 
@@ -99,7 +55,6 @@ def picovoice():
                 ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command \
                     ("python3 ~/workspace/motorreceiver.py")
                 sleep(2)
-                #main()
                 print("Done")
                 
     except KeyboardInterrupt:
